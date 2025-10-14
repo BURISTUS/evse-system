@@ -1,0 +1,45 @@
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+
+# Build output
+dist/
+build/
+coverage/
+
+# Logs
+logs/
+*.log
+
+# Tests
+test/
+*.spec.ts
+*.test.ts
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Temporary
+*.tmp
+.cache/

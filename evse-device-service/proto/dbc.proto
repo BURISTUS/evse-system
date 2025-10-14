@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package dbc;
+
+service DBCParserService {
+  rpc ParseFrame(ParseFrameRequest) returns (ParseFrameResponse);
+  rpc ParseBatch(ParseBatchRequest) returns (stream ParseFrameResponse);
+}
+
+message ParseFrameRequest {
+  string frame_data = 1;
+  string timestamp = 2;
+}
+
+message ParseFrameResponse {
+  int32 device_address = 1;
+  int32 message_id = 2;
+  string message_name = 3;
+  string signals_json = 4;
+  string raw_payload = 5;
+  bool crc_valid = 6;
+  bool parsed = 7;
+  string error = 8;
+  string timestamp = 9;
+}
+
+message ParseBatchRequest {
+  repeated ParseFrameRequest frames = 1;
+}

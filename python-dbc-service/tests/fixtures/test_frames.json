@@ -1,0 +1,32 @@
+{
+    "valid_frames": [
+      {
+        "description": "Device 1, Message 100",
+        "frame": "610C0102030405060708",
+        "expected": {
+          "device_address": 1,
+          "can_message_id": 100,
+          "packet_type": "unicast"
+        }
+      },
+      {
+        "description": "Broadcast, Message 200", 
+        "frame": "0019AABBCCDDEEFF00",
+        "expected": {
+          "device_address": 0,
+          "can_message_id": 200,
+          "packet_type": "broadcast"
+        }
+      }
+    ],
+    "invalid_frames": [
+      {
+        "description": "Wrong size",
+        "frame": "0102030405"
+      },
+      {
+        "description": "Invalid CRC",
+        "frame": "610C01020304050607080000"
+      }
+    ]
+  }

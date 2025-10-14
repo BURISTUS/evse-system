@@ -1,0 +1,156 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: evse-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-evse_db}
+      POSTGRES_USER: ${POSTGRES_USER:-evse_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - evse-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - evse-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-evse_user} -d ${POSTGRES_DB:-evse_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: evse-redis
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    volumes:
+      - evse-redis-data:/data 
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    restart: unless-stopped
+    networks:
+      - evse-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: evse-mosquitto
+    ports:
+      - "${MQTT_PORT:-1884}:1883"
+      - "${MQTT_WS_PORT:-9002}:9001"
+    volumes:
+      - evse-mosquitto-data:/mosquitto/data
+      - evse-mosquitto-logs:/mosquitto/log
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    restart: unless-stopped
+    networks:
+      - evse-network
+
+  dbc-service:
+    build:
+      context: ./dbc-service
+      dockerfile: Dockerfile
+    container_name: evse-dbc-service
+    environment:
+      - GRPC_PORT=50051
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    ports:
+      - "${DBC_PORT:-50051}:50051"
+    volumes:
+      - ./dbc-service/logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - evse-network
+    healthcheck:
+      test: ["CMD-SHELL", "python -c 'import socket; s=socket.socket(); s.settimeout(1); s.connect((\"localhost\", 50051)); s.close()' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+
+  evse-device-service:
+    build:
+      context: ./evse-device-service
+      dockerfile: Dockerfile
+    container_name: evse-device-service
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3001
+      - MQTT_BROKER_URL=mqtt://mosquitto:1883
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DBC_GRPC_URL=dbc-service:50051
+      - MAIN_GRPC_URL=main-backend:50052
+    ports:
+      - "${EVSE_DEVICE_PORT:-3001}:3001"
+    volumes:
+      - ./evse-device-service/logs:/app/logs
+    depends_on:
+      mosquitto:
+        condition: service_started
+      redis:
+        condition: service_healthy
+      dbc-service:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - evse-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+
+  # main-backend:
+  #   build:
+  #     context: ./main-backend
+  #     dockerfile: Dockerfile
+  #   container_name: evse-main-backend
+  #   environment:
+  #     - NODE_ENV=${NODE_ENV:-production}
+  #     - PORT=3000
+  #     - DATABASE_URL=postgresql://${POSTGRES_USER:-evse_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-evse_db}  # Внутри сети
+  #     - REDIS_HOST=redis  # Внутри сети
+  #     - REDIS_PORT=6379  # Внутренний порт
+  #     - GRPC_PORT=50052
+  #     - JWT_SECRET=${JWT_SECRET}
+  #   ports:
+  #     - "${MAIN_BACKEND_PORT:-3000}:3000"
+  #     - "${MAIN_GRPC_PORT:-50052}:50052"
+  #   volumes:
+  #     - ./main-backend/logs:/app/logs
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   restart: unless-stopped
+  #   networks:
+  #     - evse-network
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     start_period: 40s
+  #     retries: 3
+
+networks:
+  evse-network:
+    name: evse-network
+    driver: bridge
+
+volumes:
+  evse-postgres-data:
+    name: evse-postgres-data
+  evse-redis-data:
+    name: evse-redis-data
+  evse-mosquitto-data:
+    name: evse-mosquitto-data
+  evse-mosquitto-logs:
+    name: evse-mosquitto-logs

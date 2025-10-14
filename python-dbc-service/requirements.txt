@@ -1,0 +1,5 @@
+grpcio==1.59.0
+grpcio-tools==1.59.0
+cantools==39.4.5
+python-dotenv==1.0.0
+pydantic==2.5.0
