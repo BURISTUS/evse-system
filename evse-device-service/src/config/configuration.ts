@@ -1,7 +1,7 @@
 export default () => ({
   port: parseInt(process.env.PORT, 10) || 3001,
   mqtt: {
-    brokerUrl: process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883',
+    brokerUrl: process.env.MQTT_BROKER_URL || 'mqtt://localhost:1884',
     clientId: `evse-service-${Date.now()}`,
   },
   grpc: {
