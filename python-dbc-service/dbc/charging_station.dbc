@@ -1,0 +1,209 @@
+VERSION ""
+
+
+NS_ : 
+	NS_DESC_
+	CM_
+	BA_DEF_
+	BA_
+	VAL_
+	CAT_DEF_
+	CAT_
+	FILTER
+	BA_DEF_DEF_
+	EV_DATA_
+	ENVVAR_DATA_
+	SGTYPE_
+	SGTYPE_VAL_
+	BA_DEF_SGTYPE_
+	BA_SGTYPE_
+	SIG_TYPE_REF_
+	VAL_TABLE_
+	SIG_GROUP_
+	SIG_VALTYPE_
+	SIGTYPE_VALTYPE_
+	BO_TX_BU_
+	BA_DEF_REL_
+	BA_REL_
+	BA_DEF_DEF_REL_
+	BU_SG_REL_
+	BU_EV_REL_
+	BU_BO_REL_
+	SG_MUL_VAL_
+
+BS_:
+
+BU_: EVSE HOST
+
+
+BO_ 34 remote_cmd: 6 Vector__XXX
+ SG_ charge_cmd_p1 : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ cmd_charge_wh_max : 24|17@1+ (1,0) [0|131071] "Wh" Vector__XXX
+ SG_ cmd_charge_time_max : 13|11@1+ (1,0) [0|2047] "min" Vector__XXX
+ SG_ req_msg_id : 3|10@1+ (1,0) [0|1023] "" Vector__XXX
+ SG_ data_req : 2|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ charge_cmd_p0 : 0|1@1+ (1,0) [0|1] "" Vector__XXX
+
+BO_ 33 host_cfg: 2 HOST
+ SG_ cfg_port_type : 8|2@1+ (1,0) [0|3] ""  EVSE
+ SG_ cfg_port_nmb : 7|1@1+ (1,0) [0|1] ""  EVSE
+ SG_ cfg_port_gender : 6|1@1+ (1,0) [0|1] ""  EVSE
+ SG_ cfg_port_cable_current : 10|5@1+ (1,0) [0|31] "A"  EVSE
+ SG_ cfg_dev_addr : 1|5@1+ (1,0) [0|31] ""  EVSE
+ SG_ cfg_en : 0|1@1+ (1,0) [0|1] "bool"  EVSE
+
+BO_ 32 host_cmd: 6 HOST
+ SG_ charge_cmd_p1 : 1|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ cmd_charge_wh_max : 31|17@1+ (1,0) [0|131071] "Wh" Vector__XXX
+ SG_ cmd_charge_time_max : 20|11@1+ (1,0) [0|2047] "min" Vector__XXX
+ SG_ req_msg_id : 10|10@1+ (1,0) [0|1023] ""  EVSE
+ SG_ charge_rate_cmd : 2|6@1+ (1,0) [0|63] "Arms"  EVSE
+ SG_ data_req : 8|1@1+ (1,0) [0|1] ""  EVSE
+ SG_ fire_alarm : 9|1@1+ (1,0) [0|1] ""  EVSE
+ SG_ charge_cmd_p0 : 0|1@1+ (1,0) [0|1] ""  EVSE
+
+BO_ 20 evse_data2: 8 EVSE
+ SG_ port1_temp_max : 48|8@1- (1,0) [-128|127] "C"  HOST
+ SG_ port0_temp_max : 40|8@1- (1,0) [-128|127] "C"  HOST
+ SG_ temp_amb : 56|8@1- (1,0) [-128|127] "C"  HOST
+ SG_ temp_in_max : 32|8@1- (1,0) [-128|127] "C"  HOST
+ SG_ v_phase3 : 18|9@1+ (1,0) [0|511] "Vrms"  HOST
+ SG_ v_phase2 : 9|9@1+ (1,0) [0|511] "Vrms"  HOST
+ SG_ v_phase1 : 0|9@1+ (1,0) [0|511] "Vrms"  HOST
+
+BO_ 19 evse_data1: 8 EVSE
+ SG_ port1_pwr : 50|14@1+ (1.4,0) [0|22936.2] "W"  HOST
+ SG_ port0_pwr : 36|14@1+ (1.4,0) [0|22936.2] "W"  HOST
+ SG_ port1_i3 : 30|6@1+ (1,0) [0|63] "Arms"  HOST
+ SG_ port1_i2 : 24|6@1+ (1,0) [0|63] "Arms"  HOST
+ SG_ port1_i1 : 18|6@1+ (1,0) [0|63] "Arms"  HOST
+ SG_ port0_i3 : 12|6@1+ (1,0) [0|63] "Arms"  HOST
+ SG_ port0_i2 : 6|6@1+ (1,0) [0|63] "Arms"  HOST
+ SG_ port0_i1 : 0|6@1+ (1,0) [0|63] "Arms"  HOST
+
+BO_ 18 evse_statistic: 7 EVSE
+ SG_ session_total_charge : 38|18@1+ (1,0) [0|262143] "kWh"  HOST
+ SG_ session_total_time : 18|20@1+ (1,0) [0|1048575] "min"  HOST
+ SG_ session_total_count : 0|18@1+ (1,0) [0|262143] ""  HOST
+
+BO_ 17 evse_session: 6 EVSE
+ SG_ session_port_nmb : 47|1@1+ (1,0) [0|1] "" Vector__XXX
+ SG_ session_power_used : 29|18@1+ (1,0) [0|262143] "WH"  HOST
+ SG_ session_time : 18|11@1+ (1,0) [0|2047] "min"  HOST
+ SG_ session_id : 0|18@1+ (1,0) [0|262143] ""  HOST
+
+BO_ 16 evse_state: 8 EVSE
+ SG_ port1_evse_rdy : 1|1@1+ (1,0) [0|1] "bool" Vector__XXX
+ SG_ port1_relay_state : 4|1@1+ (1,0) [0|1] "bool" Vector__XXX
+ SG_ port1_pilot_state : 19|3@1+ (1,0) [0|7] "ENUM" Vector__XXX
+ SG_ device_id : 40|24@1+ (1,0) [0|16777215] ""  HOST
+ SG_ port1_max_lim : 13|1@1+ (1,0) [0|1] "bool"  HOST
+ SG_ port0_max_lim : 12|1@1+ (1,0) [0|1] "bool"  HOST
+ SG_ port1_gender : 6|1@1+ (1,0) [0|1] "bool"  HOST
+ SG_ port0_gender : 5|1@1+ (1,0) [0|1] "bool"  HOST
+ SG_ port1_type : 10|2@1+ (1,0) [0|3] ""  HOST
+ SG_ port0_type : 8|2@1+ (1,0) [0|3] ""  HOST
+ SG_ fault_code : 24|16@1+ (1,0) [0|65535] "bitfield"  HOST
+ SG_ port0_pilot_state : 16|3@1+ (1,0) [0|7] "ENUM"  HOST
+ SG_ mode_3phase : 2|1@1+ (1,0) [0|1] "bool"  HOST
+ SG_ port0_relay_state : 3|1@1+ (1,0) [0|1] "bool"  HOST
+ SG_ port0_evse_rdy : 0|1@1+ (1,0) [0|1] "bool"  HOST
+
+
+
+CM_ BO_ 34 "Control message from host/PLC to EVSE";
+CM_ SG_ 34 charge_cmd_p1 "0 - STOP charging
+1 - START charging";
+CM_ SG_ 34 cmd_charge_wh_max "Summ of charge (kWh) for all sessions";
+CM_ SG_ 34 cmd_charge_time_max "Max charge time for single session";
+CM_ SG_ 34 data_req "0 - command
+1 - data request";
+CM_ SG_ 34 charge_cmd_p0 "0 - STOP charging
+1 - START charging";
+CM_ BO_ 33 "EVSE config setup message";
+CM_ SG_ 33 cfg_port_type "0 - NONE
+1 - GBT
+2 - CCS/TYPE2
+3 - CHADEMO";
+CM_ SG_ 33 cfg_port_nmb "Port number";
+CM_ SG_ 33 cfg_port_gender "0 - female
+1 - male";
+CM_ SG_ 33 cfg_port_cable_current "Max cable current (A)";
+CM_ SG_ 33 cfg_dev_addr "Device PLC addres config";
+CM_ SG_ 33 cfg_en "Config write command (1 write)";
+CM_ BO_ 32 "Control message from host/PLC to EVSE";
+CM_ SG_ 32 charge_cmd_p1 "0 - STOP charging
+1 - START charging";
+CM_ SG_ 32 cmd_charge_wh_max "Summ of charge (kWh) for all sessions";
+CM_ SG_ 32 cmd_charge_time_max "Max charge time for single session";
+CM_ SG_ 32 charge_rate_cmd "Current limmit for single port (A)";
+CM_ SG_ 32 data_req "���� data_req = 0, ����� ����������� ������ �������.
+���� data_req = 1, ����� ��������� ������ ������� �� ������.
+";
+CM_ SG_ 32 fire_alarm "0 - OK
+1 - fire";
+CM_ SG_ 32 charge_cmd_p0 "0 - STOP charging
+1 - START charging";
+CM_ BO_ 20 "EVSE real-time data";
+CM_ BO_ 19 "EVSE real-time data";
+CM_ SG_ 19 port1_pwr "Total output power";
+CM_ SG_ 19 port0_pwr "Total output power";
+CM_ SG_ 19 port1_i3 "Current at Port 1 Phase 3";
+CM_ SG_ 19 port1_i2 "Current at Port 1 Phase 2";
+CM_ SG_ 19 port1_i1 "Current at Port 1 Phase 1";
+CM_ SG_ 19 port0_i3 "Current at Port 0 Phase 3";
+CM_ SG_ 19 port0_i2 "Current at Port 0 Phase 2";
+CM_ SG_ 19 port0_i1 "Current at Port 0 Phase 1";
+CM_ BO_ 18 "Statistic of EVSE";
+CM_ SG_ 18 session_total_charge "Summ of charge (kWh) for all sessions";
+CM_ SG_ 18 session_total_time "Summ of total charge time (min)";
+CM_ SG_ 18 session_total_count "Total amount of charge sessions on this EVSE";
+CM_ BO_ 17 "EVSE current session state";
+CM_ SG_ 17 session_port_nmb "Port number";
+CM_ BO_ 16 "EVSE current state";
+CM_ SG_ 16 port1_pilot_state "PILOT_STATE_VH_NC:0-Vehicle not connected
+PILOT_STATE_VH_CONN:1-Vehicle connected
+PILOT_STATE_VH_RDY:2-Vehicle ready/charging
+PILOT_STATE_VH_VRQ:3-Vehicle ready, ventilation required
+PILOT_STATE_ERR:4-Error state";
+CM_ SG_ 16 port1_max_lim "0 - 16A
+1 - 32A";
+CM_ SG_ 16 port0_max_lim "0 - 16A
+1 - 32A";
+CM_ SG_ 16 port1_gender "0 - female
+1 - male";
+CM_ SG_ 16 port0_gender "0 - female
+1 - male";
+CM_ SG_ 16 port1_type "0 - NONE
+1 - GBT
+2 - CCS/TYPE2
+3 - CHADEMO";
+CM_ SG_ 16 port0_type "0 - NONE
+1 - GBT
+2 - CCS/TYPE2
+3 - CHADEMO";
+CM_ SG_ 16 fault_code "EVSE_FLT_OVP:1-OVLT
+EVSE_FLT_UVP:2-UVLT
+EVSE_FLT_OCP0:3
+EVSE_FLT_OCP1:4
+EVSE_FLT_RLY:5
+EVSE_FLT_GFCI:6-GNDFLT
+EVSE_FLT_PILOT:7
+EVSE_FLT_OVTI :8
+EVSE_FLT_OVTO:9
+EVSE_FLT_OVTA:10
+EVSE_FLT_WDRST:11
+EVSE_FLT_FIRE:12
+EVSE_FLT_RSVD:0,13-15";
+CM_ SG_ 16 port0_pilot_state "PILOT_STATE_VH_NC:0-Vehicle not connected
+PILOT_STATE_VH_CONN:1-Vehicle connected
+PILOT_STATE_VH_RDY:2-Vehicle ready/charging
+PILOT_STATE_VH_VRQ:3-Vehicle ready, ventilation required
+PILOT_STATE_ERR:4-Error state";
+CM_ SG_ 16 mode_3phase "0 - signle phase mode
+1 - 3 phase mode";
+BA_DEF_  "MultiplexExtEnabled" ENUM  "No","Yes";
+BA_DEF_  "BusType" STRING ;
+BA_DEF_DEF_  "MultiplexExtEnabled" "No";
+BA_DEF_DEF_  "BusType" "CAN";
+
