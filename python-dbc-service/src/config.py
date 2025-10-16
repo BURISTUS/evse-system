@@ -29,7 +29,7 @@ class LoggingConfig(BaseSettings):
 
 class MetricsConfig(BaseSettings):
     enabled: bool = True
-    port: int = 9090
+    port: int = 9091
     path: str = "/metrics"
 
 
