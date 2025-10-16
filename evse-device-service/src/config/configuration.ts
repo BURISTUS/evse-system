@@ -3,6 +3,8 @@ export default () => ({
   mqtt: {
     brokerUrl: process.env.MQTT_BROKER_URL || 'mqtt://localhost:1884',
     clientId: `evse-service-${Date.now()}`,
+    username: process.env.MQTT_USERNAME || 'evse_admin',
+    password: process.env.MQTT_PASSWORD || 'evse_admin_pass',
   },
   grpc: {
     dbcServiceUrl: process.env.DBC_SERVICE_URL || 'localhost:50051',
