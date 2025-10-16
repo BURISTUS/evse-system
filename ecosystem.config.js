@@ -1,14 +1,14 @@
 module.exports = {
     apps: [
       // ==========================================
-      // DBC Service (Python gRPC)
+      // DBC Service (Python gRPC через poetry)
       // ==========================================
       {
         name: 'dbc-service',
-        script: 'python',
-        args: 'src/main.py',
+        script: 'poetry',
+        args: 'run dbc-service',
         cwd: '/var/www/evse-system/python-dbc-service',
-        interpreter: '/var/www/.pyenv/versions/3.11.11/bin/python',
+        interpreter: 'none',
         env: {
           PYTHONUNBUFFERED: '1',
           PYTHONPATH: '/var/www/evse-system/python-dbc-service/src',
@@ -16,6 +16,7 @@ module.exports = {
           GRPC_HOST: '0.0.0.0',
           METRICS_PORT: '9091',
           LOG_LEVEL: 'info',
+          PATH: '/var/www/.local/bin:/usr/local/bin:/usr/bin:/bin',
         },
         error_file: './logs/error.log',
         out_file: './logs/out.log',
