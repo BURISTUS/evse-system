@@ -49,9 +49,13 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   private async connect() {
     const brokerUrl = this.configService.get('mqtt.brokerUrl');
     const clientId = this.configService.get('mqtt.clientId');
+    const username = this.configService.get('mqtt.username');
+    const password = this.configService.get('mqtt.password');
     
     this.client = mqtt.connect(brokerUrl, {
       clientId,
+      username,
+      password,
       clean: true,
       reconnectPeriod: 1000,
       connectTimeout: 30000,
