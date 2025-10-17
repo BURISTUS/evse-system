@@ -62,15 +62,17 @@ function createFrame(deviceAddress, messageId, canData = null) {
 console.log('\n🚀 EVSE Device MQTT Test Script');
 console.log('================================\n');
 
-const BROKER_URL = 'mqtt://localhost:1883';
+const BROKER_URL = 'mqtt://46.148.233.150:1884';
 const DEVICE_ID = 5;
 
 const client = mqtt.connect(BROKER_URL, {
   clientId: `test-device-${DEVICE_ID}-${Date.now()}`,
+  username: 'evse_device', 
+  password: 'evse_device_password', 
 });
 
 // Подписываемся на топик с распарсенными данными
-const PARSED_TOPIC = `/DBC_PARSED/#`;
+const PARSED_TOPIC = `/DBC_PARSED/${DEVICE_ID}`;
 
 client.on('connect', async () => {
   console.log(`✅ Connected to MQTT broker: ${BROKER_URL}\n`);
