@@ -111,7 +111,7 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         timestamp,
       };
 
-      const parsedTopic = `/DBC_PARSED/${message_name}/${device_address}`;
+      const parsedTopic = `/DBC_PARSED/${device_address}`;
       
       this.client.publish(
         parsedTopic,
