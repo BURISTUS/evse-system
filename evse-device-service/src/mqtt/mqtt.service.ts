@@ -89,12 +89,45 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         this.logger.warn(`Failed to parse frame from ${topic}: ${parsedFrame.error}`);
         return;
       }
+      await this.publishParsedData(parsedFrame);
   
       await this.processMessage(topic, parsedFrame);
   
     } catch (error) {
       this.logger.error(`Error processing MQTT message: ${error.message}`);
       this.logger.error(error.stack);
+    }
+  }
+
+  private async publishParsedData(parsedFrame: any): Promise<void> {
+    try {
+      const { message_name, device_address, signals_json, crc_valid, timestamp } = parsedFrame;
+      
+      const jsonPayload = {
+        device_address,
+        message_name,
+        signals: JSON.parse(signals_json || '{}'),
+        crc_valid,
+        timestamp,
+      };
+
+      const parsedTopic = `/DBC_PARSED/${message_name}/${device_address}`;
+      
+      this.client.publish(
+        parsedTopic,
+        JSON.stringify(jsonPayload),
+        { qos: 1 },
+        (error) => {
+          if (error) {
+            this.logger.error(`Failed to publish parsed data to ${parsedTopic}: ${error.message}`);
+          } else {
+            this.logger.debug(`📤 Published parsed data to: ${parsedTopic}`);
+          }
+        }
+      );
+
+    } catch (error) {
+      this.logger.error(`Error publishing parsed data to MQTT: ${error.message}`);
     }
   }
   
