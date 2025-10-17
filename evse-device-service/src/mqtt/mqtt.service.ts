@@ -5,11 +5,16 @@ import { DeviceService } from '../device/device.service';
 import { GrpcDbcService } from '../grpc/grpc-dbc.service';
 import { SessionService } from '../session/session.service';
 import { RedisService } from '../redis/redis.service';
+import { CRC16 } from './utils/crc16.util';
 
 @Injectable()
 export class MqttService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(MqttService.name);
   private client: mqtt.MqttClient;
+  
+  private readonly pendingRetries = new Map<string, number>();
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_DELAY_MS = 1000;
 
   constructor(
     private configService: ConfigService,
@@ -76,6 +81,26 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     this.logger.log(`📨 Received on topic: ${topic}, length: ${payload.length}`);
     
     try {
+      const validation = this.validateFrame(payload);
+      
+      if (!validation.valid) {
+        this.logger.warn(`❌ Frame validation failed: ${validation.error}`);
+        
+        const deviceId = this.extractDeviceIdFromTopic(topic);
+        if (deviceId && !topic.includes('REGISTER')) {
+          await this.handleInvalidFrame(deviceId, payload, validation.error);
+        }
+        
+        return;
+      }
+      
+      this.logger.debug(`Frame validated successfully, CRC: ${validation.crc}`);
+      
+      const deviceId = this.extractDeviceIdFromTopic(topic);
+      if (deviceId) {
+        this.clearRetryCounter(deviceId);
+      }
+      
       const frameData = payload.toString('hex').toUpperCase();
       
       const parsedFrame = await this.grpcDbcService.parseFrame({
@@ -90,13 +115,94 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
         return;
       }
       await this.publishParsedData(parsedFrame);
-  
       await this.processMessage(topic, parsedFrame);
   
     } catch (error) {
       this.logger.error(`Error processing MQTT message: ${error.message}`);
       this.logger.error(error.stack);
     }
+  }
+
+  private validateFrame(payload: Buffer): { 
+    valid: boolean; 
+    error?: string;
+    crc?: string;
+  } {
+    if (payload.length !== 12) {
+      return {
+        valid: false,
+        error: `Invalid frame length: ${payload.length}, expected 12`,
+      };
+    }
+    
+    const crcData = payload.subarray(0, 10);  // COMM_ADDR (2) + DATA (8)
+    const crcBytes = payload.subarray(10, 12); // CRC16 (2)
+    const crcReceived = crcBytes.readUInt16LE(0);
+    const crcCalculated = CRC16.calculate(crcData);
+    
+    if (crcCalculated !== crcReceived) {
+      return {
+        valid: false,
+        error: `CRC mismatch: calculated=${CRC16.format(crcCalculated)}, received=${CRC16.format(crcReceived)}`,
+      };
+    }
+    
+    return {
+      valid: true,
+      crc: CRC16.format(crcCalculated),
+    };
+  }
+
+  private async handleInvalidFrame(
+    deviceId: number,
+    payload: Buffer,
+    error: string,
+  ): Promise<void> {
+    const commAddr = payload.readUInt16LE(0);
+    const msgId = (commAddr >> 5) & 0x3FF;
+    
+    const retryKey = `${deviceId}_${msgId}`;
+    const currentRetries = this.pendingRetries.get(retryKey) || 0;
+    
+    if (currentRetries >= this.MAX_RETRIES) {
+      this.logger.error(
+        `Max retries (${this.MAX_RETRIES}) reached for device ${deviceId}, message ${msgId}. ${error}`
+      );
+      
+      this.pendingRetries.delete(retryKey);
+      // await this.deviceService.reportError(
+      //   deviceId, 
+      //   `CRC validation failed after ${this.MAX_RETRIES} retries: ${error}`
+      // );
+      return;
+    }
+    
+    this.pendingRetries.set(retryKey, currentRetries + 1);
+    
+    this.logger.warn(
+      `🔁 Retrying request for device ${deviceId}, message ${msgId}. ` +
+      `Attempt ${currentRetries + 1}/${this.MAX_RETRIES}. Reason: ${error}`
+    );
+    
+    await this.sleep(this.RETRY_DELAY_MS);
+    
+    await this.requestDeviceData(deviceId, msgId);
+  }
+
+  private clearRetryCounter(deviceId: number): void {
+    const keysToDelete: string[] = [];
+    this.pendingRetries.forEach((_, key) => {
+      if (key.startsWith(`${deviceId}_`)) {
+        keysToDelete.push(key);
+      }
+    });
+    
+    keysToDelete.forEach(key => this.pendingRetries.delete(key));
+  }
+
+  private extractDeviceIdFromTopic(topic: string): number | null {
+    const match = topic.match(/\/(EVSE|HOST)\/(\d+)\/(INBOX|OUTBOX)/);
+    return match ? parseInt(match[2], 10) : null;
   }
 
   private async publishParsedData(parsedFrame: any): Promise<void> {
@@ -208,26 +314,11 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
     canData.writeUInt16LE(command.cmd_charge_wh_max || 0, 6);
     
     const crcData = Buffer.concat([commAddrBytes, canData]);
-    const crc = this.calculateCRC16(crcData);
+    const crc = CRC16.calculate(crcData);
     const crcBytes = Buffer.allocUnsafe(2);
     crcBytes.writeUInt16LE(crc, 0);
     
     return Buffer.concat([commAddrBytes, canData, crcBytes]);
-  }
-  
-  private calculateCRC16(data: Buffer): number {
-    let crc = 0x0000;
-    for (const byte of data) {
-      crc ^= byte;
-      for (let i = 0; i < 8; i++) {
-        if (crc & 1) {
-          crc = (crc >> 1) ^ 0xA001;
-        } else {
-          crc >>= 1;
-        }
-      }
-    }
-    return crc & 0xFFFF;
   }
   
   async sendCommand(deviceId: number, command: any): Promise<void> {
@@ -285,5 +376,9 @@ export class MqttService implements OnModuleInit, OnModuleDestroy {
   
     await this.sendCommand(deviceId, command);
     this.logger.log(`Stopped charging on device ${deviceId}, port ${port}`);
+  }
+
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

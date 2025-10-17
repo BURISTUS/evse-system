@@ -21,6 +21,7 @@ class CommData(BaseModel):
     frame_id: CommAddr
     data: bytes = Field(min_length=8, max_length=8)
     crc16: int
+    crc_valid: bool = True 
     timestamp: datetime = Field(default_factory=datetime.now)
 
 
