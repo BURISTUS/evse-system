@@ -68,7 +68,7 @@ const DEVICE_ID = 5;
 const client = mqtt.connect(BROKER_URL, {
   clientId: `test-device-${DEVICE_ID}-${Date.now()}`,
   username: 'evse_device', 
-  password: 'evse_device_password', 
+  password: 'evse_device_pass', 
 });
 
 // Подписываемся на топик с распарсенными данными
